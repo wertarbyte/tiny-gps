@@ -9,16 +9,7 @@
 #define NMEA_FLAG_LAT_N 1
 #define NMEA_FLAG_LON_E 2
 
-struct {
-	/* flag bits (lsb to msb):
-	 * 0 status (1 == OK, 0 == warning)
-	 * 1 latitude alignment (1 == N, 0 == S)
-	 * 2 longitude alignment (1 == E, 0 == W)
-	 */
-	uint8_t flags;
-	struct coord lat;
-	struct coord lon;
-} nmea_pos = {0};
+struct nmea_rmc_t nmea_rmc = {0};
 
 static enum {
 	GP_UNKNOWN,
@@ -82,16 +73,16 @@ static void process_gprmc_token(void) {
 			 * V Warning
 			 */
 			if (strcmp(token_buffer, "A") == 0) {
-				nmea_pos.flags |= (1<<NMEA_FLAG_STATUS);
+				nmea_rmc.flags |= (1<<NMEA_FLAG_STATUS);
 			} else {
-				nmea_pos.flags &= ~(1<<NMEA_FLAG_STATUS);
+				nmea_rmc.flags &= ~(1<<NMEA_FLAG_STATUS);
 			}
 			break;
 		case 3:
 			/* latitude
 			 * BBBB.BBBB
 			 */
-			parse_coord(&nmea_pos.lat);
+			parse_coord(&nmea_rmc.lat);
 			break;
 		case 4:
 			/* orientation
@@ -99,16 +90,16 @@ static void process_gprmc_token(void) {
 			 * S south
 			 */
 			if (strcmp(token_buffer, "N") == 0) {
-				nmea_pos.flags |= (1<<NMEA_FLAG_LAT_N);
+				nmea_rmc.flags |= (1<<NMEA_FLAG_LAT_N);
 			} else {
-				nmea_pos.flags &= ~(1<<NMEA_FLAG_LAT_N);
+				nmea_rmc.flags &= ~(1<<NMEA_FLAG_LAT_N);
 			}
 			break;
 		case 5:
 			/* longitude
 			 * LLLLL.LLLL
 			 */
-			parse_coord(&nmea_pos.lon);
+			parse_coord(&nmea_rmc.lon);
 			break;
 		case 6:
 			/* orientation
@@ -116,9 +107,9 @@ static void process_gprmc_token(void) {
 			 * W west
 			 */
 			if (strcmp(token_buffer, "E") == 0) {
-				nmea_pos.flags |= (1<<NMEA_FLAG_LON_E);
+				nmea_rmc.flags |= (1<<NMEA_FLAG_LON_E);
 			} else {
-				nmea_pos.flags &= ~(1<<NMEA_FLAG_LON_E);
+				nmea_rmc.flags &= ~(1<<NMEA_FLAG_LON_E);
 			}
 
 			break;
