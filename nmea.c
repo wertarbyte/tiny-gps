@@ -5,6 +5,21 @@
 
 #include "nmea.h"
 
+#define NMEA_FLAG_STATUS 0
+#define NMEA_FLAG_LAT_N 1
+#define NMEA_FLAG_LON_E 2
+
+struct {
+	/* flag bits (lsb to msb):
+	 * 0 status (1 == OK, 0 == warning)
+	 * 1 latitude alignment (1 == N, 0 == S)
+	 * 2 longitude alignment (1 == E, 0 == W)
+	 */
+	uint8_t flags;
+	struct coord lat;
+	struct coord lon;
+} nmea_pos = {0};
+
 static enum {
 	GP_UNKNOWN,
 	GP_GPRMC,
@@ -15,6 +30,44 @@ static uint8_t token_nr = 0;
 #define TOKEN_BUFFER_SIZE 16
 
 static char token_buffer[TOKEN_BUFFER_SIZE] = "";
+
+static void parse_coord(struct coord *co) {
+	/* clear the struct */
+	memset(co, 0, sizeof(struct coord));
+	/* find the decimal point */
+	char *ptr = token_buffer;
+	while (*ptr && *ptr != '.') ptr++;
+	if (*ptr == '.') {
+		/* we found the point */
+		*ptr = '\0';
+		ptr++;
+	} else {
+		/* something weird happened,
+		 * there is no decimal point?!
+		 */
+		return;
+	}
+	/* two digits before the decimal point
+	 * are the minutes
+	 */
+	co->min = atoi(ptr-3);
+	*(ptr-3) = '\0';
+	co->deg = atoi(token_buffer);
+
+	/* now we BCD encode as many fractions
+	 * of a minute as we can
+	 */
+	uint8_t i = 0;
+	while (i<NMEA_MINUTE_FRACTS && ptr[i]) {
+		uint8_t n = (ptr[i]-'0');
+		if (i%2 == 0) {
+			co->frac[i/2] |= (n << 4);
+		} else {
+			co->frac[i/2] |= (0x0F & n);
+		}
+		i++;
+	}
+}
 
 static void process_gprmc_token(void) {
 	switch (token_nr) {
@@ -28,28 +81,46 @@ static void process_gprmc_token(void) {
 			 * A OK
 			 * V Warning
 			 */
+			if (strcmp(token_buffer, "A") == 0) {
+				nmea_pos.flags |= (1<<NMEA_FLAG_STATUS);
+			} else {
+				nmea_pos.flags &= ~(1<<NMEA_FLAG_STATUS);
+			}
 			break;
 		case 3:
 			/* latitude
 			 * BBBB.BBBB
 			 */
+			parse_coord(&nmea_pos.lat);
 			break;
 		case 4:
 			/* orientation
 			 * N north
 			 * S south
 			 */
+			if (strcmp(token_buffer, "N") == 0) {
+				nmea_pos.flags |= (1<<NMEA_FLAG_LAT_N);
+			} else {
+				nmea_pos.flags &= ~(1<<NMEA_FLAG_LAT_N);
+			}
 			break;
 		case 5:
 			/* longitude
 			 * LLLLL.LLLL
 			 */
+			parse_coord(&nmea_pos.lon);
 			break;
 		case 6:
 			/* orientation
 			 * E east
 			 * W west
 			 */
+			if (strcmp(token_buffer, "E") == 0) {
+				nmea_pos.flags |= (1<<NMEA_FLAG_LON_E);
+			} else {
+				nmea_pos.flags &= ~(1<<NMEA_FLAG_LON_E);
+			}
+
 			break;
 		case 7:
 			/* speed
