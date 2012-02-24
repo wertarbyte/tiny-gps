@@ -39,6 +39,7 @@ Change Activity:
 
 ********************************************************************************/
 
+#include <stdlib.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "usiTwiSlave.h"
@@ -254,10 +255,9 @@ static uint8_t          rxBuf[ TWI_RX_BUFFER_SIZE ];
 static volatile uint8_t rxHead;
 static volatile uint8_t rxTail;
 
-static uint8_t          txBuf[ TWI_TX_BUFFER_SIZE ];
-static volatile uint8_t txHead;
-static volatile uint8_t txTail;
-
+static volatile void    *tx_window_start;
+static volatile void    *tx_window_end;
+static volatile void    *tx_window_cur;
 
 
 /********************************************************************************
@@ -278,8 +278,9 @@ flushTwiBuffers(
 {
   rxTail = 0;
   rxHead = 0;
-  txTail = 0;
-  txHead = 0;
+  tx_window_start = 0;
+  tx_window_end = 0;
+  tx_window_cur = 0;
 } // end flushTwiBuffers
 
 
@@ -341,31 +342,15 @@ usiTwiSlaveInit(
 } // end usiTwiSlaveInit
 
 
-
-// put data in the transmission buffer, wait if buffer is full
-
-void
-usiTwiTransmitByte(
-  uint8_t data
+void usiTwiSetTransmitWindow(
+  void *start,
+  size_t size
 )
 {
-
-  uint8_t tmphead;
-
-  // calculate buffer index
-  tmphead = ( txHead + 1 ) & TWI_TX_BUFFER_MASK;
-
-  // wait for free space in buffer
-  while ( tmphead == txTail );
-
-  // store data in buffer
-  txBuf[ tmphead ] = data;
-
-  // store new index
-  txHead = tmphead;
-
-} // end usiTwiTransmitByte
-
+  tx_window_start = start;
+  tx_window_end = start+size;
+  tx_window_cur = tx_window_start;
+}
 
 
 // return a byte from the receive buffer, wait if buffer is empty
@@ -506,6 +491,7 @@ ISR( USI_OVERFLOW_VECTOR )
           if ( USIDR & 0x01 )
         {
           overflowState = USI_SLAVE_SEND_DATA;
+          tx_window_cur = tx_window_start;
         }
         else
         {
@@ -535,10 +521,11 @@ ISR( USI_OVERFLOW_VECTOR )
     // next USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA
     case USI_SLAVE_SEND_DATA:
       // Get data from Buffer
-      if ( txHead != txTail )
+      // FIXME Does not work - why oh why?!
+      if ( tx_window_cur >= tx_window_start && tx_window_cur < tx_window_end )
       {
-        txTail = ( txTail + 1 ) & TWI_TX_BUFFER_MASK;
-        USIDR = txBuf[ txTail ];
+        USIDR = *(uint8_t*)(tx_window_cur);
+	tx_window_cur++;
       }
       else
       {
