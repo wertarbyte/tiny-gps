@@ -67,12 +67,41 @@ static void parse_coord(struct coord *co) {
 	}
 }
 
+static void parse_clock(struct clock_t *cl) {
+	memset(cl, 0, sizeof(struct clock_t));
+	char buf[3] = "";
+	strncpy(buf, token_buffer, 2);
+	buf[2] = '\0';
+	cl->hour = atoi(buf);
+	strncpy(buf, token_buffer+2, 2);
+	buf[2] = '\0';
+	cl->minute = atoi(buf);
+	strncpy(buf, token_buffer+4, 2);
+	buf[2] = '\0';
+	cl->second = atoi(buf);
+}
+
+static void parse_date(struct date_t *d) {
+	memset(d, 0, sizeof(struct date_t));
+	char buf[3] = "";
+	strncpy(buf, token_buffer, 2);
+	buf[2] = '\0';
+	d->day = atoi(buf);
+	strncpy(buf, token_buffer+2, 2);
+	buf[2] = '\0';
+	d->month = atoi(buf);
+	strncpy(buf, token_buffer+4, 2);
+	buf[2] = '\0';
+	d->year = atoi(buf);
+}
+
 static void process_gprmc_token(void) {
 	switch (token_nr) {
 		case 1:
 			/* time
 			 * HHMMSS(.sssss)
 			 */
+			parse_clock(&nmea_rmc.clock);
 			break;
 		case 2:
 			/* status
@@ -134,6 +163,7 @@ static void process_gprmc_token(void) {
 			/* date
 			 * DDMMYY
 			 */
+			parse_date(&nmea_rmc.date);
 			break;
 		case 10:
 			/* magnetic declination

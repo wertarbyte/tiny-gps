@@ -9,6 +9,18 @@ struct coord {
 	uint8_t frac[(NMEA_MINUTE_FRACTS+1)/2];
 };
 
+struct clock_t {
+	uint8_t hour;
+	uint8_t minute;
+	uint8_t second;
+};
+
+struct date_t {
+	uint8_t day;
+	uint8_t month;
+	uint8_t year;
+};
+
 struct nmea_rmc_t {
 	/* flag bits (lsb to msb):
 	 * 0 status (1 == OK, 0 == warning)
@@ -16,6 +28,8 @@ struct nmea_rmc_t {
 	 * 2 longitude alignment (1 == E, 0 == W)
 	 */
 	uint8_t flags;
+	struct date_t date;
+	struct clock_t clock;
 	struct coord lat;
 	struct coord lon;
 };
