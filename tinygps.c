@@ -12,18 +12,19 @@
 extern struct nmea_rmc_t nmea_rmc;
 
 int main(void) {
-	DDRD |= 1<<PD5;
+	UCSRB = (1<<RXEN);
+	UCSRC = (0<<USBS)|(3<<UCSZ0);
+	UCSRA = (0<<U2X);
+	UBRRL = 12;
 
 	usiTwiSlaveInit(TWIADDRESS);
 	usiTwiSetTransmitWindow( &nmea_rmc, sizeof(struct nmea_rmc_t) );
 
-	char *input = "$GPRMC,125934.000,V,5123.1457,N,00645.0808,E,,,020811,,*13\r\n";
-	while (input[0]) {
-		nmea_process_character(input[0]);
-		input++;
-	}
-	PORTD |= 1<<PD5;
 	sei();
 	while (1) {
+		/* read from the serial UART */
+		while(!(UCSRA & (1<<RXC))) {}
+		char c = UDR;
+		nmea_process_character(c);
 	}
 }
