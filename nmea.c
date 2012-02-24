@@ -10,10 +10,12 @@
 #define NMEA_FLAG_LON_E 2
 
 struct nmea_rmc_t nmea_rmc = {0};
+struct nmea_gga_t nmea_gga = {0};
 
 static enum {
 	GP_UNKNOWN,
 	GP_GPRMC,
+	GP_GGA,
 } sentence = GP_UNKNOWN;
 
 static uint8_t token_nr = 0;
@@ -152,6 +154,22 @@ static void process_gprmc_token(void) {
 	}
 }
 
+static void process_gpgga_token(void) {
+	switch (token_nr) {
+		case 6:
+			/* signal quality */
+			nmea_gga.quality = atoi(token_buffer);
+			break;
+		case 7:
+			/* number of used satellites */
+			nmea_gga.sats = atoi(token_buffer);
+			break;
+		default:
+			/* nothing to do */
+			break;
+	}
+}
+
 static void sentence_started(void) {
 	/* a new sentence has started, we do not know which yet */
 	sentence = GP_UNKNOWN;
@@ -172,12 +190,17 @@ static void token_finished(void) {
 				/* the first token defines the sentence type */
 				if (strcmp(token_buffer, "GPRMC") == 0) {
 					sentence = GP_GPRMC;
+				} else if (strcmp(token_buffer, "GPGGA") == 0) {
+					sentence = GP_GGA;
 				}
 			}
 			break;
 		case GP_GPRMC:
 			/* process data of the minimal data set */
 			process_gprmc_token();
+			break;
+		case GP_GGA:
+			process_gpgga_token();
 			break;
 		default:
 			/* don't know what to do with it */

@@ -20,5 +20,10 @@ struct nmea_rmc_t {
 	struct coord lon;
 };
 
+struct nmea_gga_t {
+	uint8_t quality;
+	uint8_t sats;
+};
+
 void nmea_process_character(char c);
 
