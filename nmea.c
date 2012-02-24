@@ -9,8 +9,13 @@
 #define NMEA_FLAG_LAT_N 1
 #define NMEA_FLAG_LON_E 2
 
-struct nmea_rmc_t nmea_rmc = {0};
-struct nmea_gga_t nmea_gga = {0};
+static struct nmea_rmc_t nmea_rmc = {0};
+static struct nmea_gga_t nmea_gga = {0};
+
+struct nmea_data_t nmea_data = {
+	{0},
+	{0},
+};
 
 static enum {
 	GP_UNKNOWN,
@@ -179,7 +184,19 @@ static void sentence_started(void) {
 }
 
 static void sentence_finished(void) {
-	/* the entire sentence has been read */
+	/* the entire sentence has been read;
+	 * now copy the constructed data to the ouput struct
+	 */
+	switch (sentence) {
+		case GP_GPRMC:
+			memcpy(&nmea_data.rmc, &nmea_rmc, sizeof(nmea_rmc));
+			break;
+		case GP_GGA:
+			memcpy(&nmea_data.gga, &nmea_gga, sizeof(nmea_gga));
+			break;
+		default:
+			break;
+	}
 }
 
 static void token_finished(void) {

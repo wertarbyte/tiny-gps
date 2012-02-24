@@ -25,5 +25,10 @@ struct nmea_gga_t {
 	uint8_t sats;
 };
 
+struct nmea_data_t {
+	struct nmea_rmc_t rmc;
+	struct nmea_gga_t gga;
+};
+
 void nmea_process_character(char c);
 

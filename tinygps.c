@@ -9,7 +9,7 @@
 
 #define TWIADDRESS 0x11
 
-extern struct nmea_rmc_t nmea_rmc;
+extern struct nmea_data_t nmea_data;
 
 int main(void) {
 	UCSRB = (1<<RXEN);
@@ -18,7 +18,7 @@ int main(void) {
 	UBRRL = 12;
 
 	usiTwiSlaveInit(TWIADDRESS);
-	usiTwiSetTransmitWindow( &nmea_rmc, sizeof(struct nmea_rmc_t) );
+	usiTwiSetTransmitWindow( &nmea_data, sizeof(struct nmea_data_t) );
 
 	sei();
 	while (1) {
