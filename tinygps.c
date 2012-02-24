@@ -6,6 +6,8 @@
 
 #include "nmea.h"
 
+extern struct nmea_rmc_t nmea_rmc;
+
 int main(void) {
 	DDRD |= 1<<PD5;
 

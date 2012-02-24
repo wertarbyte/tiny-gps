@@ -18,7 +18,7 @@ struct nmea_rmc_t {
 	uint8_t flags;
 	struct coord lat;
 	struct coord lon;
-} nmea_rmc;
+};
 
 void nmea_process_character(char c);
 
