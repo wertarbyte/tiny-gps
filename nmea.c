@@ -19,7 +19,7 @@ struct nmea_data_t nmea_data = {
 
 static enum {
 	GP_UNKNOWN,
-	GP_GPRMC,
+	GP_RMC,
 	GP_GGA,
 } sentence = GP_UNKNOWN;
 
@@ -188,7 +188,7 @@ static void sentence_finished(void) {
 	 * now copy the constructed data to the ouput struct
 	 */
 	switch (sentence) {
-		case GP_GPRMC:
+		case GP_RMC:
 			memcpy(&nmea_data.rmc, &nmea_rmc, sizeof(nmea_rmc));
 			break;
 		case GP_GGA:
@@ -206,13 +206,13 @@ static void token_finished(void) {
 			if (token_nr == 0) {
 				/* the first token defines the sentence type */
 				if (strcmp(token_buffer, "GPRMC") == 0) {
-					sentence = GP_GPRMC;
+					sentence = GP_RMC;
 				} else if (strcmp(token_buffer, "GPGGA") == 0) {
 					sentence = GP_GGA;
 				}
 			}
 			break;
-		case GP_GPRMC:
+		case GP_RMC:
 			/* process data of the minimal data set */
 			process_gprmc_token();
 			break;
