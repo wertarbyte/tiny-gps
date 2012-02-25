@@ -78,16 +78,7 @@ static void parse_coord(struct coord *co) {
 	/* now we BCD encode as many fractions
 	 * of a minute as we can
 	 */
-	uint8_t i = 0;
-	while (i<NMEA_MINUTE_FRACTS && ptr[i]) {
-		uint8_t n = (ptr[i]-'0');
-		if (i%2 == 0) {
-			co->frac[i/2] |= (n << 4);
-		} else {
-			co->frac[i/2] |= (0x0F & n);
-		}
-		i++;
-	}
+	parse_to_bcd(ptr, co->frac, NMEA_MINUTE_FRACTS);
 }
 
 static void parse_altitude(struct altitude_t *a) {
@@ -99,24 +90,14 @@ static void parse_altitude(struct altitude_t *a) {
 	if (*p == '.') {
 		/* we found the point */
 		*p = '\0';
-		p++;
+		/* now we BCD encode as many fractions
+		 * as we can
+		 */
+		parse_to_bcd(p+1, a->frac, NMEA_ALTITUDE_FRACTS);
 	}
 	/* parse the integer part */
 	a->m = atoi(token_buffer);
 
-	/* now we BCD encode as many fractions
-	 * as we can
-	 */
-	uint8_t i = 0;
-	while (i<NMEA_ALTITUDE_FRACTS && p[i]) {
-		uint8_t n = (p[i]-'0');
-		if (i%2 == 0) {
-			a->frac[i/2] |= (n << 4);
-		} else {
-			a->frac[i/2] |= (0x0F & n);
-		}
-		i++;
-	}
 }
 
 static void parse_clock(struct clock_t *cl) {
