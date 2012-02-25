@@ -12,6 +12,7 @@
 extern struct nmea_data_t nmea_data;
 
 int main(void) {
+	DDRD = (1<<PD5);
 	UCSRB = (1<<RXEN);
 	UCSRC = (0<<USBS)|(3<<UCSZ0);
 	UCSRA = (0<<U2X);
@@ -20,11 +21,20 @@ int main(void) {
 	usiTwiSlaveInit(TWIADDRESS);
 	usiTwiSetTransmitWindow( &nmea_data, sizeof(struct nmea_data_t) );
 
+	PORTD &= ~(1<<PD5);
+
 	sei();
 	while (1) {
 		/* read from the serial UART */
 		while(!(UCSRA & (1<<RXC))) {}
 		char c = UDR;
 		nmea_process_character(c);
+
+		/* toggle gps fix indicator */
+		if (nmea_data.rmc.flags & 1<<NMEA_RMC_FLAGS_STATUS_OK) {
+			PORTD |= (1<<PD5);
+		} else {
+			PORTD &= ~(1<<PD5);
+		}
 	}
 }
