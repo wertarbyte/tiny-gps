@@ -215,6 +215,11 @@ static void sentence_finished(void) {
 		default:
 			break;
 	}
+	/* since we processed the entire sentence, everything following until
+	 * the next $ is considered garbage;
+	 * (there might be a checksum - which we ignore)
+	 */
+	sentence = GP_UNKNOWN;
 }
 
 static void token_finished(void) {
@@ -259,9 +264,9 @@ void nmea_process_character(char c) {
 			sentence_started();
 			break;
 		case ',':
-		case '*': /* the checksum is following, but we ignore it */
 			token_finished();
 			break;
+		case '*': /* the checksum is following, but we ignore it */
 		case '\n':
 			token_finished();
 			sentence_finished();
