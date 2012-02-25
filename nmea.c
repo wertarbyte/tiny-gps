@@ -19,6 +19,16 @@ static enum {
 	GP_GGA,
 } sentence = GP_UNKNOWN;
 
+static enum {
+	CS_UNKNOWN, /* no checksum is available */
+	CS_CALC, /* calculating checksum */
+	CS_READ, /* reading transmitted checksum */
+	CS_VALID, /* transmitted checksum did not match the calculated one */
+	CS_INVALID, /* the transmitted checksum did not match the calculated one */
+} checksum_state = CS_UNKNOWN;
+
+uint8_t checksum = 0;
+
 static uint8_t token_nr = 0;
 
 #define TOKEN_BUFFER_SIZE 16
@@ -204,7 +214,11 @@ static void sentence_started(void) {
 static void sentence_finished(void) {
 	/* the entire sentence has been read;
 	 * now copy the constructed data to the ouput struct
+	 * if the checksum matches.
 	 */
+	if (checksum_state == CS_INVALID) {
+		return;
+	}
 	switch (sentence) {
 		case GP_RMC:
 			memcpy(&nmea_data.rmc, &nmea_rmc, sizeof(nmea_rmc));
@@ -215,15 +229,10 @@ static void sentence_finished(void) {
 		default:
 			break;
 	}
-	/* since we processed the entire sentence, everything following until
-	 * the next $ is considered garbage;
-	 * (there might be a checksum - which we ignore)
-	 */
-	sentence = GP_UNKNOWN;
 }
 
-static void token_finished(void) {
-	/* a token has been completed, process the content in the buffer */
+static void gp_token_finished(void) {
+	/* a token of the nmea sentence has been completed */
 	switch (sentence) {
 		case GP_UNKNOWN:
 			if (token_nr == 0) {
@@ -250,6 +259,51 @@ static void token_finished(void) {
 	token_nr++;
 }
 
+static uint8_t hex_digit(char c) {
+	if (c >= '0' && c <= '9') {
+		return (c - '0');
+	} else if (c >= 'A' && c <= 'F') {
+		return (10+(c - 'A'));
+	} else if (c >= 'a' && c <= 'f') {
+		return (10+(c - 'a'));
+	} else {
+		return 0;
+	}
+}
+
+static uint8_t hex_to_short(char *s) {
+	uint8_t r = 0;
+	uint8_t i = 1;
+	char *w = s;
+	while (*w) w++; /* now *w == '\0' */
+	while (w > s) {
+		w--;
+		r += i*hex_digit(*w);
+		i *= 16;
+	}
+	return r;
+}
+
+static void token_finished(void) {
+	/* a token has been completed, process the content in the buffer */
+	if (checksum_state != CS_READ) {
+		/* it was a normal token and not the checksum */
+		gp_token_finished();
+	} else {
+		/* did we receive a checksum? */
+		if (token_buffer[0] == '\0') {
+			/* there is no checksum */
+			checksum_state = CS_UNKNOWN;
+		} else if ( hex_to_short(token_buffer) == checksum ) {
+			/* the received checksum does match our calculated one */
+			checksum_state = CS_VALID;
+		} else {
+			/* something strange happened */
+			checksum_state = CS_INVALID;
+		}
+	}
+}
+
 static void append_to_token(const char c) {
 	uint8_t l = strlen(token_buffer);
 	if (l < (TOKEN_BUFFER_SIZE-1)) {
@@ -258,20 +312,37 @@ static void append_to_token(const char c) {
 	}
 }
 
+static void add_to_checksum(const char c) {
+	checksum ^= c;
+}
+
 void nmea_process_character(char c) {
 	switch (c) {
 		case '$': /* a new sentence is starting */
 			sentence_started();
+			/* reset and enable checksum calculation */
+			checksum = 0;
+			checksum_state = CS_CALC;
 			break;
 		case ',':
 			token_finished();
 			break;
-		case '*': /* the checksum is following, but we ignore it */
+		case '*': /* checksum is following */
+			token_finished();
+			checksum_state = CS_READ;
+			break;
+		case '\r':
+			/* \n is following soon, we ignore this */
+			break;
 		case '\n':
 			token_finished();
 			sentence_finished();
+			checksum_state = CS_UNKNOWN;
 			break;
 		default:
 			append_to_token(c);
+	}
+	if (checksum_state == CS_CALC && c != '$') {
+		add_to_checksum(c);
 	}
 }
