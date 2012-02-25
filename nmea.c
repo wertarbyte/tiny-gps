@@ -10,8 +10,8 @@
  * been received completely, we transfer the useful
  * data to the output struct
  */
-static struct nmea_rmc_t nmea_rmc = {0};
-static struct nmea_gga_t nmea_gga = {0};
+static struct nmea_rmc_t nmea_rmc;
+static struct nmea_gga_t nmea_gga;
 
 /* this is the data we will be offering */
 struct nmea_data_t nmea_data = {0};
@@ -37,6 +37,20 @@ static uint8_t token_nr = 0;
 #define TOKEN_BUFFER_SIZE 16
 
 static char token_buffer[TOKEN_BUFFER_SIZE] = "";
+
+
+static void parse_to_bcd(char *s, uint8_t *b, uint8_t max) {
+	uint8_t i = 0;
+	while (i<max && s[i]) {
+		uint8_t n = (s[i]-'0');
+		if (i%2 == 0) {
+			b[i/2] |= (n << 4);
+		} else {
+			b[i/2] |= (0x0F & n);
+		}
+		i++;
+	}
+}
 
 static void parse_coord(struct coord *co) {
 	/* clear the struct */
@@ -71,6 +85,35 @@ static void parse_coord(struct coord *co) {
 			co->frac[i/2] |= (n << 4);
 		} else {
 			co->frac[i/2] |= (0x0F & n);
+		}
+		i++;
+	}
+}
+
+static void parse_altitude(struct altitude_t *a) {
+	/* clear the struct */
+	memset(a, 0, sizeof(struct altitude_t));
+	/* find the decimal point */
+	char *p = token_buffer;
+	while (*p && *p != '.') p++;
+	if (*p == '.') {
+		/* we found the point */
+		*p = '\0';
+		p++;
+	}
+	/* parse the integer part */
+	a->m = atoi(token_buffer);
+
+	/* now we BCD encode as many fractions
+	 * as we can
+	 */
+	uint8_t i = 0;
+	while (i<NMEA_ALTITUDE_FRACTS && p[i]) {
+		uint8_t n = (p[i]-'0');
+		if (i%2 == 0) {
+			a->frac[i/2] |= (n << 4);
+		} else {
+			a->frac[i/2] |= (0x0F & n);
 		}
 		i++;
 	}
@@ -200,6 +243,10 @@ static void process_gpgga_token(void) {
 			/* number of used satellites */
 			nmea_gga.sats = atoi(token_buffer);
 			break;
+		case 9:
+			/* altitude */
+			parse_altitude(&nmea_gga.alt);
+			break;
 		default:
 			/* nothing to do */
 			break;
@@ -235,6 +282,8 @@ static void sentence_finished(void) {
 			/* copy quality and number of satellites */
 			nmea_data.quality = nmea_gga.quality;
 			nmea_data.sats = nmea_gga.sats;
+			/* copy altitude */
+			memcpy(&nmea_data.alt, &nmea_gga.alt, sizeof(nmea_gga.alt));
 			break;
 		default:
 			break;

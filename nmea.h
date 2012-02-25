@@ -1,4 +1,5 @@
 #define NMEA_MINUTE_FRACTS 4
+#define NMEA_ALTITUDE_FRACTS 4
 
 #define NMEA_RMC_FLAGS_STATUS_OK 0
 #define NMEA_RMC_FLAGS_LAT_NORTH 1
@@ -11,6 +12,11 @@ struct coord {
 	uint8_t min;
 	/* fractions of minutes saved as BCD */
 	uint8_t frac[(NMEA_MINUTE_FRACTS+1)/2];
+};
+
+struct altitude_t {
+	int16_t m;
+	uint8_t frac[(NMEA_ALTITUDE_FRACTS+1)/2];
 };
 
 struct clock_t {
@@ -39,6 +45,7 @@ struct nmea_rmc_t {
 };
 
 struct nmea_gga_t {
+	struct altitude_t alt;
 	uint8_t quality;
 	uint8_t sats;
 };
@@ -49,7 +56,7 @@ struct nmea_data_t {
 	struct clock_t clock;
 	struct coord lat;
 	struct coord lon;
-	uint16_t alt;
+	struct altitude_t alt;
 	uint8_t quality;
 	uint8_t sats;
 };
