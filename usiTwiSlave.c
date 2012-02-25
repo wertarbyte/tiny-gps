@@ -258,6 +258,7 @@ static volatile uint8_t rxTail;
 static volatile void    *tx_window_start;
 static volatile void    *tx_window_end;
 static volatile void    *tx_window_cur;
+static volatile size_t  tx_window_offset;
 
 
 /********************************************************************************
@@ -281,6 +282,7 @@ flushTwiBuffers(
   tx_window_start = 0;
   tx_window_end = 0;
   tx_window_cur = 0;
+  tx_window_offset = 0;
 } // end flushTwiBuffers
 
 
@@ -491,7 +493,9 @@ ISR( USI_OVERFLOW_VECTOR )
           if ( USIDR & 0x01 )
         {
           overflowState = USI_SLAVE_SEND_DATA;
-          tx_window_cur = tx_window_start;
+          tx_window_cur = tx_window_start+tx_window_offset;
+          /* the next request will start at 0 again */
+          tx_window_offset = 0;
         }
         else
         {
@@ -554,11 +558,16 @@ ISR( USI_OVERFLOW_VECTOR )
     // copy data from USIDR and send ACK
     // next USI_SLAVE_REQUEST_DATA
     case USI_SLAVE_GET_DATA_AND_SEND_ACK:
+#if 0
       // put data into buffer
       // Not necessary, but prevents warnings
       rxHead = ( rxHead + 1 ) & TWI_RX_BUFFER_MASK;
       rxBuf[ rxHead ] = USIDR;
       // next USI_SLAVE_REQUEST_DATA
+#else
+      /* we assume that the data is an address offset */
+      tx_window_offset = USIDR;
+#endif
       overflowState = USI_SLAVE_REQUEST_DATA;
       SET_USI_TO_SEND_ACK( );
       break;
