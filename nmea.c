@@ -69,30 +69,22 @@ static void parse_coord(struct coord *co) {
 
 static void parse_clock(struct clock_t *cl) {
 	memset(cl, 0, sizeof(struct clock_t));
-	char buf[3] = "";
-	strncpy(buf, token_buffer, 2);
-	buf[2] = '\0';
-	cl->hour = atoi(buf);
-	strncpy(buf, token_buffer+2, 2);
-	buf[2] = '\0';
-	cl->minute = atoi(buf);
-	strncpy(buf, token_buffer+4, 2);
-	buf[2] = '\0';
-	cl->second = atoi(buf);
+	token_buffer[6] = '\0';
+	cl->second = atoi(&token_buffer[4]);
+	token_buffer[4] = '\0';
+	cl->minute = atoi(&token_buffer[2]);
+	token_buffer[2] = '\0';
+	cl->hour = atoi(&token_buffer[0]);
 }
 
 static void parse_date(struct date_t *d) {
 	memset(d, 0, sizeof(struct date_t));
-	char buf[3] = "";
-	strncpy(buf, token_buffer, 2);
-	buf[2] = '\0';
-	d->day = atoi(buf);
-	strncpy(buf, token_buffer+2, 2);
-	buf[2] = '\0';
-	d->month = atoi(buf);
-	strncpy(buf, token_buffer+4, 2);
-	buf[2] = '\0';
-	d->year = atoi(buf);
+	token_buffer[6] = '\0';
+	d->year = atoi(&token_buffer[4]);
+	token_buffer[4] = '\0';
+	d->month = atoi(&token_buffer[2]);
+	token_buffer[2] = '\0';
+	d->day = atoi(&token_buffer[0]);
 }
 
 static void process_gprmc_token(void) {
