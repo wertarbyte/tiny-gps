@@ -43,7 +43,7 @@ static void parse_to_bcd(char *s, uint8_t *b, uint8_t max) {
 	uint8_t i = 0;
 	while (i<max && s[i]) {
 		uint8_t n = (s[i]-'0');
-		if (i%2 == 0) {
+		if (i%2 == 1) {
 			b[i/2] |= (n << 4);
 		} else {
 			b[i/2] |= (0x0F & n);
