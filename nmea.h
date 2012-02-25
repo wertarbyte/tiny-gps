@@ -1,5 +1,9 @@
 #define NMEA_MINUTE_FRACTS 4
 
+#define NMEA_RMC_FLAGS_STATUS_OK 0
+#define NMEA_RMC_FLAGS_LAT_NORTH 1
+#define NMEA_RMC_FLAGS_LON_EAST 2
+
 struct coord {
 	/* degrees, 0-180 or 0-90 */
 	uint8_t deg;

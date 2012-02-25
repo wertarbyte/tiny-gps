@@ -5,10 +5,6 @@
 
 #include "nmea.h"
 
-#define NMEA_FLAG_STATUS 0
-#define NMEA_FLAG_LAT_N 1
-#define NMEA_FLAG_LON_E 2
-
 static struct nmea_rmc_t nmea_rmc = {0};
 static struct nmea_gga_t nmea_gga = {0};
 
@@ -101,9 +97,9 @@ static void process_gprmc_token(void) {
 			 * V Warning
 			 */
 			if (strcmp(token_buffer, "A") == 0) {
-				nmea_rmc.flags |= (1<<NMEA_FLAG_STATUS);
+				nmea_rmc.flags |= (1<<NMEA_RMC_FLAGS_STATUS_OK);
 			} else {
-				nmea_rmc.flags &= ~(1<<NMEA_FLAG_STATUS);
+				nmea_rmc.flags &= ~(1<<NMEA_RMC_FLAGS_STATUS_OK);
 			}
 			break;
 		case 3:
@@ -118,9 +114,9 @@ static void process_gprmc_token(void) {
 			 * S south
 			 */
 			if (strcmp(token_buffer, "N") == 0) {
-				nmea_rmc.flags |= (1<<NMEA_FLAG_LAT_N);
+				nmea_rmc.flags |= (1<<NMEA_RMC_FLAGS_LAT_NORTH);
 			} else {
-				nmea_rmc.flags &= ~(1<<NMEA_FLAG_LAT_N);
+				nmea_rmc.flags &= ~(1<<NMEA_RMC_FLAGS_LAT_NORTH);
 			}
 			break;
 		case 5:
@@ -135,9 +131,9 @@ static void process_gprmc_token(void) {
 			 * W west
 			 */
 			if (strcmp(token_buffer, "E") == 0) {
-				nmea_rmc.flags |= (1<<NMEA_FLAG_LON_E);
+				nmea_rmc.flags |= (1<<NMEA_RMC_FLAGS_LON_EAST);
 			} else {
-				nmea_rmc.flags &= ~(1<<NMEA_FLAG_LON_E);
+				nmea_rmc.flags &= ~(1<<NMEA_RMC_FLAGS_LON_EAST);
 			}
 
 			break;
