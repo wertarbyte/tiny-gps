@@ -44,8 +44,14 @@ struct nmea_gga_t {
 };
 
 struct nmea_data_t {
-	struct nmea_rmc_t rmc;
-	struct nmea_gga_t gga;
+	uint8_t flags;
+	struct date_t date;
+	struct clock_t clock;
+	struct coord lat;
+	struct coord lon;
+	uint16_t alt;
+	uint8_t quality;
+	uint8_t sats;
 };
 
 void nmea_process_character(char c);

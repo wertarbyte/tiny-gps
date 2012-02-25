@@ -31,7 +31,7 @@ int main(void) {
 		nmea_process_character(c);
 
 		/* toggle gps fix indicator */
-		if (nmea_data.rmc.flags & 1<<NMEA_RMC_FLAGS_STATUS_OK) {
+		if (nmea_data.flags & 1<<NMEA_RMC_FLAGS_STATUS_OK) {
 			PORTD |= (1<<PD5);
 		} else {
 			PORTD &= ~(1<<PD5);

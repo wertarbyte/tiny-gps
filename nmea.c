@@ -5,13 +5,16 @@
 
 #include "nmea.h"
 
+/* these structs are used as a construction site
+ * during the parsing process; once a sentence has
+ * been received completely, we transfer the useful
+ * data to the output struct
+ */
 static struct nmea_rmc_t nmea_rmc = {0};
 static struct nmea_gga_t nmea_gga = {0};
 
-struct nmea_data_t nmea_data = {
-	{0},
-	{0},
-};
+/* this is the data we will be offering */
+struct nmea_data_t nmea_data = {0};
 
 static enum {
 	GP_UNKNOWN,
@@ -221,10 +224,17 @@ static void sentence_finished(void) {
 	}
 	switch (sentence) {
 		case GP_RMC:
-			memcpy(&nmea_data.rmc, &nmea_rmc, sizeof(nmea_rmc));
+			/* copy date, time and location */
+			memcpy(&nmea_data.date, &nmea_rmc.date, sizeof(nmea_rmc.date));
+			memcpy(&nmea_data.clock, &nmea_rmc.clock, sizeof(nmea_rmc.clock));
+			nmea_data.flags = nmea_rmc.flags;
+			memcpy(&nmea_data.lon, &nmea_rmc.lon, sizeof(nmea_rmc.lon));
+			memcpy(&nmea_data.lat, &nmea_rmc.lat, sizeof(nmea_rmc.lat));
 			break;
 		case GP_GGA:
-			memcpy(&nmea_data.gga, &nmea_gga, sizeof(nmea_gga));
+			/* copy quality and number of satellites */
+			nmea_data.quality = nmea_gga.quality;
+			nmea_data.sats = nmea_gga.sats;
 			break;
 		default:
 			break;
