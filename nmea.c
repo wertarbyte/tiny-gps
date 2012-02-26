@@ -5,6 +5,13 @@
 
 #include "nmea.h"
 
+#if __AVR__
+#include <util/atomic.h>
+#define ATOMIC(t) ATOMIC_BLOCK(t)
+#else
+#define ATOMIC(t)
+#endif
+
 /* these structs are used as a construction site
  * during the parsing process; once a sentence has
  * been received completely, we transfer the useful
@@ -376,7 +383,9 @@ void nmea_process_character(char c) {
 			break;
 		case '\n':
 			token_finished();
-			sentence_finished();
+			ATOMIC(ATOMIC_RESTORESTATE) {
+				sentence_finished();
+			}
 			checksum_state = CS_UNKNOWN;
 			break;
 		default:
