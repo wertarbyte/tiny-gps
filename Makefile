@@ -1,6 +1,6 @@
 MCU = attiny2313
 F_CPU = 1000000
-TARGET = tinygps
+TARGET = tiny-gps
 SRC = tiny-gps.c nmea.c usiTwiSlave.c
 COMBINE_SRC = 1
 
