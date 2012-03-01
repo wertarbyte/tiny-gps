@@ -1,0 +1,39 @@
+Tiny-GPS I²C interface
+
+by Stefan Tomanek <stefan@pico.ruhr.de>
+
+Using this software, your handy little ATTiny2313 starts reading NMEA sentences
+from a serial GPS receiver connected to its RXD pin. These sentences are
+interpreted and stored in RAM, where the data can be accessed via the I²C/TWI
+bus connected to the SCL (PB7) and SDA (PB5) pins.
+
+Currently, only the GPGGA and GPRMC sentences are interpreted; the data is
+accessible in the following format (see nmea_data_t in nmea.h):
+
+byte	content
+0	bit flags (from lsb to msb):
+	0 NMEA signal is valid (1<<NMEA_RMC_FLAGS_STATUS_OK)
+	1 latitude alignment North (1<<NMEA_RMC_FLAGS_LAT_NORTH)
+	2 longitude alignment East (1<<NMEA_RMC_FLAGS_LON_EAST)
+
+1	day
+2	month
+3	year (2 digits)
+4	hour
+5	minute
+6	second
+7	latitude degrees
+8	latitude minutes
+9/10	latitude fractions of a minute, BCD format
+11	longitude degrees
+12	longitude minutes
+13/14	longitude fractions of a minute, BCD format
+15/16	altitude in m (signed, 16 bit)
+17	altitude fractions of metres, BCD format
+18	signal quality
+19	number of satellites used
+
+To access a field directly, its address can be written to the device,
+The default I²C bus address is 0x11.
+
+At 1 MHz clock frequency, the serial port is configured for 9600 bps.
