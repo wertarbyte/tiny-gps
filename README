@@ -33,7 +33,10 @@ byte	content
 18	signal quality
 19	number of satellites used
 
-To access a field directly, its address can be written to the device,
-The default I²C bus address is 0x11.
+The default I²C address is 0x11 and can be changed by editing 'config.h'.
 
-At 1 MHz clock frequency, the serial port is configured for 9600 bps.
+The controller polls the GPS receiver with the baud rate of 9600 bps, which is
+also configurable.
+
+To enable reliable TWI communication at 400kHz, the controller has to be clocked at
+8 MHz (using the internal RC oscillator is fine).

@@ -7,16 +7,18 @@
 #include "nmea.h"
 #include "usiTwiSlave.h"
 
-#define TWIADDRESS 0x11
+#include "config.h"
+
+#include <util/setbaud.h>
 
 extern struct nmea_data_t nmea_data;
-
 int main(void) {
 	DDRD = (1<<PD5);
 	UCSRB = (1<<RXEN);
 	UCSRC = (0<<USBS)|(3<<UCSZ0);
-	UCSRA = (0<<U2X);
-	UBRRL = 12;
+
+	UCSRA = (USE_2X<<U2X);
+	UBRRL = UBRRL_VALUE;
 
 	usiTwiSlaveInit(TWIADDRESS);
 	usiTwiSetTransmitWindow( &nmea_data, sizeof(struct nmea_data_t) );
