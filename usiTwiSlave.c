@@ -52,7 +52,7 @@ Change Activity:
 
 ********************************************************************************/
 
-#if defined( __AVR_ATtiny2313__ )
+#if defined( __AVR_ATtiny2313__ ) | defined ( __AVR_ATtiny4313__ )
 #  define DDR_USI             DDRB
 #  define PORT_USI            PORTB
 #  define PIN_USI             PINB
