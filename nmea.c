@@ -21,7 +21,7 @@ static struct nmea_rmc_t nmea_rmc;
 static struct nmea_gga_t nmea_gga;
 
 /* this is the data we will be offering */
-struct nmea_data_t nmea_data = {0};
+static struct nmea_data_t *nmea_data = NULL;
 
 static enum {
 	GP_UNKNOWN,
@@ -260,18 +260,18 @@ static void sentence_finished(void) {
 	switch (sentence) {
 		case GP_RMC:
 			/* copy date, time and location */
-			memcpy(&nmea_data.date, &nmea_rmc.date, sizeof(nmea_rmc.date));
-			memcpy(&nmea_data.clock, &nmea_rmc.clock, sizeof(nmea_rmc.clock));
-			nmea_data.flags = nmea_rmc.flags;
-			memcpy(&nmea_data.lon, &nmea_rmc.lon, sizeof(nmea_rmc.lon));
-			memcpy(&nmea_data.lat, &nmea_rmc.lat, sizeof(nmea_rmc.lat));
+			memcpy(&nmea_data->date, &nmea_rmc.date, sizeof(nmea_rmc.date));
+			memcpy(&nmea_data->clock, &nmea_rmc.clock, sizeof(nmea_rmc.clock));
+			nmea_data->flags = nmea_rmc.flags;
+			memcpy(&nmea_data->lon, &nmea_rmc.lon, sizeof(nmea_rmc.lon));
+			memcpy(&nmea_data->lat, &nmea_rmc.lat, sizeof(nmea_rmc.lat));
 			break;
 		case GP_GGA:
 			/* copy quality and number of satellites */
-			nmea_data.quality = nmea_gga.quality;
-			nmea_data.sats = nmea_gga.sats;
+			nmea_data->quality = nmea_gga.quality;
+			nmea_data->sats = nmea_gga.sats;
 			/* copy altitude */
-			memcpy(&nmea_data.alt, &nmea_gga.alt, sizeof(nmea_gga.alt));
+			memcpy(&nmea_data->alt, &nmea_gga.alt, sizeof(nmea_gga.alt));
 			break;
 		default:
 			break;
@@ -361,6 +361,10 @@ static void append_to_token(const char c) {
 
 static void add_to_checksum(const char c) {
 	checksum ^= c;
+}
+
+void nmea_init(struct nmea_data_t *output) {
+	nmea_data = output;
 }
 
 void nmea_process_character(char c) {

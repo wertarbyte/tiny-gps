@@ -19,5 +19,6 @@ struct nmea_gga_t {
 	uint8_t sats;
 };
 
+void nmea_init(struct nmea_data_t *output);
 void nmea_process_character(char c);
 
