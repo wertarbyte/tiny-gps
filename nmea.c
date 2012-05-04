@@ -69,8 +69,6 @@ static void parse_to_bcd(char *s, uint8_t *b, uint8_t max) {
 }
 
 static void parse_coord(struct coord *co) {
-	/* clear the struct */
-	memset(co, 0, sizeof(struct coord));
 	/* find the decimal point */
 	char *ptr = token_buffer;
 	while (*ptr && *ptr != '.') ptr++;
@@ -99,8 +97,6 @@ static void parse_coord(struct coord *co) {
 
 #if PARSE_GPS_ALTITUDE
 static void parse_altitude(struct altitude_t *a) {
-	/* clear the struct */
-	memset(a, 0, sizeof(struct altitude_t));
 	/* find the decimal point */
 	char *p = token_buffer;
 	while (*p && *p != '.') p++;
@@ -120,7 +116,6 @@ static void parse_altitude(struct altitude_t *a) {
 
 #if PARSE_GPS_TIME
 static void parse_clock(struct clock_t *cl) {
-	memset(cl, 0, sizeof(struct clock_t));
 	token_buffer[6] = '\0';
 	cl->second = atoi(&token_buffer[4]);
 	token_buffer[4] = '\0';
@@ -130,7 +125,6 @@ static void parse_clock(struct clock_t *cl) {
 }
 
 static void parse_date(struct date_t *d) {
-	memset(d, 0, sizeof(struct date_t));
 	token_buffer[6] = '\0';
 	d->year = atoi(&token_buffer[4]);
 	token_buffer[4] = '\0';
@@ -368,6 +362,8 @@ static void gp_token_finished(void) {
 	switch (sentence) {
 		case GP_UNKNOWN:
 			if (token_nr == 0) {
+				/* clear the building site */
+				memset(&nmea_wip, 0, sizeof(nmea_wip));
 				/* the first token defines the sentence type */
 #if PARSE_GPS_NMEA_RMC
 				if (strcmp(token_buffer, "GPRMC") == 0) {
