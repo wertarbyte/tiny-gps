@@ -20,12 +20,14 @@
  * data to the output struct
  */
 
+static union {
 #if PARSE_GPS_NMEA_RMC
-static struct nmea_rmc_t nmea_rmc;
+	struct nmea_rmc_t rmc;
 #endif
 #if PARSE_GPS_NMEA_GGA
-static struct nmea_gga_t nmea_gga;
+	struct nmea_gga_t gga;
 #endif
+} nmea_wip;
 
 /* this is the data we will be offering */
 static struct nmea_data_t *nmea_data = NULL;
@@ -146,7 +148,7 @@ static void process_gprmc_token(void) {
 			/* time
 			 * HHMMSS(.sssss)
 			 */
-			parse_clock(&nmea_rmc.clock);
+			parse_clock(&nmea_wip.rmc.clock);
 			break;
 #endif
 		case 2:
@@ -155,16 +157,16 @@ static void process_gprmc_token(void) {
 			 * V Warning
 			 */
 			if (strcmp(token_buffer, "A") == 0) {
-				nmea_rmc.flags |= (1<<NMEA_RMC_FLAGS_STATUS_OK);
+				nmea_wip.rmc.flags |= (1<<NMEA_RMC_FLAGS_STATUS_OK);
 			} else {
-				nmea_rmc.flags &= ~(1<<NMEA_RMC_FLAGS_STATUS_OK);
+				nmea_wip.rmc.flags &= ~(1<<NMEA_RMC_FLAGS_STATUS_OK);
 			}
 			break;
 		case 3:
 			/* latitude
 			 * BBBB.BBBB
 			 */
-			parse_coord(&nmea_rmc.lat);
+			parse_coord(&nmea_wip.rmc.lat);
 			break;
 		case 4:
 			/* orientation
@@ -172,16 +174,16 @@ static void process_gprmc_token(void) {
 			 * S south
 			 */
 			if (strcmp(token_buffer, "N") == 0) {
-				nmea_rmc.flags |= (1<<NMEA_RMC_FLAGS_LAT_NORTH);
+				nmea_wip.rmc.flags |= (1<<NMEA_RMC_FLAGS_LAT_NORTH);
 			} else {
-				nmea_rmc.flags &= ~(1<<NMEA_RMC_FLAGS_LAT_NORTH);
+				nmea_wip.rmc.flags &= ~(1<<NMEA_RMC_FLAGS_LAT_NORTH);
 			}
 			break;
 		case 5:
 			/* longitude
 			 * LLLLL.LLLL
 			 */
-			parse_coord(&nmea_rmc.lon);
+			parse_coord(&nmea_wip.rmc.lon);
 			break;
 		case 6:
 			/* orientation
@@ -189,9 +191,9 @@ static void process_gprmc_token(void) {
 			 * W west
 			 */
 			if (strcmp(token_buffer, "E") == 0) {
-				nmea_rmc.flags |= (1<<NMEA_RMC_FLAGS_LON_EAST);
+				nmea_wip.rmc.flags |= (1<<NMEA_RMC_FLAGS_LON_EAST);
 			} else {
-				nmea_rmc.flags &= ~(1<<NMEA_RMC_FLAGS_LON_EAST);
+				nmea_wip.rmc.flags &= ~(1<<NMEA_RMC_FLAGS_LON_EAST);
 			}
 
 			break;
@@ -210,7 +212,7 @@ static void process_gprmc_token(void) {
 			/* date
 			 * DDMMYY
 			 */
-			parse_date(&nmea_rmc.date);
+			parse_date(&nmea_wip.rmc.date);
 			break;
 #endif
 		case 10:
@@ -246,14 +248,14 @@ static void process_gpgga_token(void) {
 			/* time
 			 * HHMMSS(.sssss)
 			 */
-			parse_clock(&nmea_gga.clock);
+			parse_clock(&nmea_wip.gga.clock);
 			break;
 #endif
 		case 2:
 			/* latitude
 			 * BBBB.BBBB
 			 */
-			parse_coord(&nmea_gga.lat);
+			parse_coord(&nmea_wip.gga.lat);
 			break;
 		case 3:
 			/* orientation
@@ -261,16 +263,16 @@ static void process_gpgga_token(void) {
 			 * S south
 			 */
 			if (strcmp(token_buffer, "N") == 0) {
-				nmea_gga.flags |= (1<<NMEA_RMC_FLAGS_LAT_NORTH);
+				nmea_wip.gga.flags |= (1<<NMEA_RMC_FLAGS_LAT_NORTH);
 			} else {
-				nmea_gga.flags &= ~(1<<NMEA_RMC_FLAGS_LAT_NORTH);
+				nmea_wip.gga.flags &= ~(1<<NMEA_RMC_FLAGS_LAT_NORTH);
 			}
 			break;
 		case 4:
 			/* longitude
 			 * LLLLL.LLLL
 			 */
-			parse_coord(&nmea_gga.lon);
+			parse_coord(&nmea_wip.gga.lon);
 			break;
 		case 5:
 			/* orientation
@@ -278,29 +280,29 @@ static void process_gpgga_token(void) {
 			 * W west
 			 */
 			if (strcmp(token_buffer, "E") == 0) {
-				nmea_gga.flags |= (1<<NMEA_RMC_FLAGS_LON_EAST);
+				nmea_wip.gga.flags |= (1<<NMEA_RMC_FLAGS_LON_EAST);
 			} else {
-				nmea_gga.flags &= ~(1<<NMEA_RMC_FLAGS_LON_EAST);
+				nmea_wip.gga.flags &= ~(1<<NMEA_RMC_FLAGS_LON_EAST);
 			}
 
 			break;
 		case 6:
 			/* signal quality */
-			nmea_gga.quality = atoi(token_buffer);
-			if (nmea_gga.quality) {
-				nmea_gga.flags |= (1<<NMEA_RMC_FLAGS_STATUS_OK);
+			nmea_wip.gga.quality = atoi(token_buffer);
+			if (nmea_wip.gga.quality) {
+				nmea_wip.gga.flags |= (1<<NMEA_RMC_FLAGS_STATUS_OK);
 			} else {
-				nmea_gga.flags &= ~(1<<NMEA_RMC_FLAGS_STATUS_OK);
+				nmea_wip.gga.flags &= ~(1<<NMEA_RMC_FLAGS_STATUS_OK);
 			}
 			break;
 		case 7:
 			/* number of used satellites */
-			nmea_gga.sats = atoi(token_buffer);
+			nmea_wip.gga.sats = atoi(token_buffer);
 			break;
 #if PARSE_GPS_ALTITUDE
 		case 9:
 			/* altitude */
-			parse_altitude(&nmea_gga.alt);
+			parse_altitude(&nmea_wip.gga.alt);
 			break;
 #endif
 		default:
@@ -331,28 +333,28 @@ static void sentence_finished(void) {
 		case GP_RMC:
 			/* copy date, time and location */
 #if PARSE_GPS_TIME
-			memcpy(&nmea_data->date, &nmea_rmc.date, sizeof(nmea_rmc.date));
-			memcpy(&nmea_data->clock, &nmea_rmc.clock, sizeof(nmea_rmc.clock));
+			memcpy(&nmea_data->date, &nmea_wip.rmc.date, sizeof(nmea_wip.rmc.date));
+			memcpy(&nmea_data->clock, &nmea_wip.rmc.clock, sizeof(nmea_wip.rmc.clock));
 #endif
-			nmea_data->flags = nmea_rmc.flags;
-			memcpy(&nmea_data->lon, &nmea_rmc.lon, sizeof(nmea_rmc.lon));
-			memcpy(&nmea_data->lat, &nmea_rmc.lat, sizeof(nmea_rmc.lat));
+			nmea_data->flags = nmea_wip.rmc.flags;
+			memcpy(&nmea_data->lon, &nmea_wip.rmc.lon, sizeof(nmea_wip.rmc.lon));
+			memcpy(&nmea_data->lat, &nmea_wip.rmc.lat, sizeof(nmea_wip.rmc.lat));
 			break;
 #endif
 #if PARSE_GPS_NMEA_GGA
 		case GP_GGA:
 #if PARSE_GPS_TIME
-			memcpy(&nmea_data->clock, &nmea_gga.clock, sizeof(nmea_gga.clock));
+			memcpy(&nmea_data->clock, &nmea_wip.gga.clock, sizeof(nmea_wip.gga.clock));
 #endif
-			nmea_data->flags = nmea_gga.flags;
-			memcpy(&nmea_data->lon, &nmea_gga.lon, sizeof(nmea_gga.lon));
-			memcpy(&nmea_data->lat, &nmea_gga.lat, sizeof(nmea_gga.lat));
+			nmea_data->flags = nmea_wip.gga.flags;
+			memcpy(&nmea_data->lon, &nmea_wip.gga.lon, sizeof(nmea_wip.gga.lon));
+			memcpy(&nmea_data->lat, &nmea_wip.gga.lat, sizeof(nmea_wip.gga.lat));
 			/* copy quality and number of satellites */
-			nmea_data->quality = nmea_gga.quality;
-			nmea_data->sats = nmea_gga.sats;
+			nmea_data->quality = nmea_wip.gga.quality;
+			nmea_data->sats = nmea_wip.gga.sats;
 #if PARSE_GPS_ALTITUDE
 			/* copy altitude */
-			memcpy(&nmea_data->alt, &nmea_gga.alt, sizeof(nmea_gga.alt));
+			memcpy(&nmea_data->alt, &nmea_wip.gga.alt, sizeof(nmea_wip.gga.alt));
 #endif
 			break;
 #endif
