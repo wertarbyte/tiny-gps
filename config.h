@@ -24,3 +24,11 @@
  * ATTiny2313.
  */
 #define PARSE_GPS_ALTITUDE 1
+
+/* only parse specific sentences?
+ *
+ * GGA does not carry date information
+ * RMC does not carry altitude/quality information
+ */
+#define PARSE_GPS_NMEA_GGA 1
+#define PARSE_GPS_NMEA_RMC 1

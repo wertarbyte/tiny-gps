@@ -19,8 +19,13 @@
  * been received completely, we transfer the useful
  * data to the output struct
  */
+
+#if PARSE_GPS_NMEA_RMC
 static struct nmea_rmc_t nmea_rmc;
+#endif
+#if PARSE_GPS_NMEA_GGA
 static struct nmea_gga_t nmea_gga;
+#endif
 
 /* this is the data we will be offering */
 static struct nmea_data_t *nmea_data = NULL;
@@ -133,6 +138,7 @@ static void parse_date(struct date_t *d) {
 }
 #endif
 
+#if PARSE_GPS_NMEA_RMC
 static void process_gprmc_token(void) {
 	switch (token_nr) {
 #if PARSE_GPS_TIME
@@ -230,12 +236,62 @@ static void process_gprmc_token(void) {
 			break;
 	}
 }
+#endif
 
+#if PARSE_GPS_NMEA_GGA
 static void process_gpgga_token(void) {
 	switch (token_nr) {
+#if PARSE_GPS_TIME
+		case 1:
+			/* time
+			 * HHMMSS(.sssss)
+			 */
+			parse_clock(&nmea_gga.clock);
+			break;
+#endif
+		case 2:
+			/* latitude
+			 * BBBB.BBBB
+			 */
+			parse_coord(&nmea_gga.lat);
+			break;
+		case 3:
+			/* orientation
+			 * N north
+			 * S south
+			 */
+			if (strcmp(token_buffer, "N") == 0) {
+				nmea_gga.flags |= (1<<NMEA_RMC_FLAGS_LAT_NORTH);
+			} else {
+				nmea_gga.flags &= ~(1<<NMEA_RMC_FLAGS_LAT_NORTH);
+			}
+			break;
+		case 4:
+			/* longitude
+			 * LLLLL.LLLL
+			 */
+			parse_coord(&nmea_gga.lon);
+			break;
+		case 5:
+			/* orientation
+			 * E east
+			 * W west
+			 */
+			if (strcmp(token_buffer, "E") == 0) {
+				nmea_gga.flags |= (1<<NMEA_RMC_FLAGS_LON_EAST);
+			} else {
+				nmea_gga.flags &= ~(1<<NMEA_RMC_FLAGS_LON_EAST);
+			}
+
+			break;
 		case 6:
 			/* signal quality */
 			nmea_gga.quality = atoi(token_buffer);
+			if (nmea_gga.quality) {
+				nmea_gga.flags |= (1<<NMEA_RMC_FLAGS_STATUS_OK);
+			} else {
+				nmea_gga.flags &= ~(1<<NMEA_RMC_FLAGS_STATUS_OK);
+			}
 			break;
 		case 7:
 			/* number of used satellites */
@@ -252,6 +308,7 @@ static void process_gpgga_token(void) {
 			break;
 	}
 }
+#endif
 
 static void sentence_started(void) {
 	/* a new sentence has started, we do not know which yet */
@@ -270,6 +327,7 @@ static void sentence_finished(void) {
 		return;
 	}
 	switch (sentence) {
+#if PARSE_GPS_NMEA_RMC
 		case GP_RMC:
 			/* copy date, time and location */
 #if PARSE_GPS_TIME
@@ -280,7 +338,15 @@ static void sentence_finished(void) {
 			memcpy(&nmea_data->lon, &nmea_rmc.lon, sizeof(nmea_rmc.lon));
 			memcpy(&nmea_data->lat, &nmea_rmc.lat, sizeof(nmea_rmc.lat));
 			break;
+#endif
+#if PARSE_GPS_NMEA_GGA
 		case GP_GGA:
+#if PARSE_GPS_TIME
+			memcpy(&nmea_data->clock, &nmea_gga.clock, sizeof(nmea_gga.clock));
+#endif
+			nmea_data->flags = nmea_gga.flags;
+			memcpy(&nmea_data->lon, &nmea_gga.lon, sizeof(nmea_gga.lon));
+			memcpy(&nmea_data->lat, &nmea_gga.lat, sizeof(nmea_gga.lat));
 			/* copy quality and number of satellites */
 			nmea_data->quality = nmea_gga.quality;
 			nmea_data->sats = nmea_gga.sats;
@@ -289,6 +355,7 @@ static void sentence_finished(void) {
 			memcpy(&nmea_data->alt, &nmea_gga.alt, sizeof(nmea_gga.alt));
 #endif
 			break;
+#endif
 		default:
 			break;
 	}
@@ -300,20 +367,31 @@ static void gp_token_finished(void) {
 		case GP_UNKNOWN:
 			if (token_nr == 0) {
 				/* the first token defines the sentence type */
+#if PARSE_GPS_NMEA_RMC
 				if (strcmp(token_buffer, "GPRMC") == 0) {
 					sentence = GP_RMC;
-				} else if (strcmp(token_buffer, "GPGGA") == 0) {
+				} else
+#endif
+#if PARSE_GPS_NMEA_GGA
+				if (strcmp(token_buffer, "GPGGA") == 0) {
 					sentence = GP_GGA;
 				}
+#else
+				{}
+#endif
 			}
 			break;
+#if PARSE_GPS_NMEA_RMC
 		case GP_RMC:
 			/* process data of the minimal data set */
 			process_gprmc_token();
 			break;
+#endif
+#if PARSE_GPS_NMEA_GGA
 		case GP_GGA:
 			process_gpgga_token();
 			break;
+#endif
 		default:
 			/* don't know what to do with it */
 			break;

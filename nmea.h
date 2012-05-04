@@ -14,6 +14,10 @@ struct nmea_rmc_t {
 };
 
 struct nmea_gga_t {
+	uint8_t flags;
+	struct clock_t clock;
+	struct coord lat;
+	struct coord lon;
 	struct altitude_t alt;
 	uint8_t quality;
 	uint8_t sats;
