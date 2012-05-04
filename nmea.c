@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "nmea.h"
+#include "config.h"
 
 #if __AVR__
 #include <util/atomic.h>
@@ -88,6 +89,7 @@ static void parse_coord(struct coord *co) {
 	parse_to_bcd(ptr, co->frac, NMEA_MINUTE_FRACTS);
 }
 
+#if PARSE_GPS_ALTITUDE
 static void parse_altitude(struct altitude_t *a) {
 	/* clear the struct */
 	memset(a, 0, sizeof(struct altitude_t));
@@ -106,7 +108,9 @@ static void parse_altitude(struct altitude_t *a) {
 	a->m = atoi(token_buffer);
 
 }
+#endif
 
+#if PARSE_GPS_TIME
 static void parse_clock(struct clock_t *cl) {
 	memset(cl, 0, sizeof(struct clock_t));
 	token_buffer[6] = '\0';
@@ -126,15 +130,18 @@ static void parse_date(struct date_t *d) {
 	token_buffer[2] = '\0';
 	d->day = atoi(&token_buffer[0]);
 }
+#endif
 
 static void process_gprmc_token(void) {
 	switch (token_nr) {
+#if PARSE_GPS_TIME
 		case 1:
 			/* time
 			 * HHMMSS(.sssss)
 			 */
 			parse_clock(&nmea_rmc.clock);
 			break;
+#endif
 		case 2:
 			/* status
 			 * A OK
@@ -191,12 +198,14 @@ static void process_gprmc_token(void) {
 			 * RR.R
 			 */
 			break;
+#if PARSE_GPS_TIME
 		case 9:
 			/* date
 			 * DDMMYY
 			 */
 			parse_date(&nmea_rmc.date);
 			break;
+#endif
 		case 10:
 			/* magnetic declination
 			 * M.M
@@ -231,10 +240,12 @@ static void process_gpgga_token(void) {
 			/* number of used satellites */
 			nmea_gga.sats = atoi(token_buffer);
 			break;
+#if PARSE_GPS_ALTITUDE
 		case 9:
 			/* altitude */
 			parse_altitude(&nmea_gga.alt);
 			break;
+#endif
 		default:
 			/* nothing to do */
 			break;
@@ -260,8 +271,10 @@ static void sentence_finished(void) {
 	switch (sentence) {
 		case GP_RMC:
 			/* copy date, time and location */
+#if PARSE_GPS_TIME
 			memcpy(&nmea_data->date, &nmea_rmc.date, sizeof(nmea_rmc.date));
 			memcpy(&nmea_data->clock, &nmea_rmc.clock, sizeof(nmea_rmc.clock));
+#endif
 			nmea_data->flags = nmea_rmc.flags;
 			memcpy(&nmea_data->lon, &nmea_rmc.lon, sizeof(nmea_rmc.lon));
 			memcpy(&nmea_data->lat, &nmea_rmc.lat, sizeof(nmea_rmc.lat));
@@ -270,8 +283,10 @@ static void sentence_finished(void) {
 			/* copy quality and number of satellites */
 			nmea_data->quality = nmea_gga.quality;
 			nmea_data->sats = nmea_gga.sats;
+#if PARSE_GPS_ALTITUDE
 			/* copy altitude */
 			memcpy(&nmea_data->alt, &nmea_gga.alt, sizeof(nmea_gga.alt));
+#endif
 			break;
 		default:
 			break;
