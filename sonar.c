@@ -61,25 +61,19 @@ ISR(TIMER1_CAPT_vect) {
 		// reset timer
 		TCNT1 = 0;
 		// now we wait for the falling edge
-		TCCR1B &= ~(1<<ICES1);
 		sonar_state = SONAR_PONG;
 	} else if (sonar_state == SONAR_PONG) {
 		sonar_pong = ICR1;
-		TCCR1B |= (1<<ICES1);
 	}
+	TCCR1B ^= (1<<ICES1);
 }
 
 ISR(TIMER1_OVF_vect) {
-	static uint8_t overflows = 0;
-	overflows++;
-	if (overflows > 5) {
-		if (sonar_state == SONAR_PING) {
-			// we are still waiting for a reply? Impossible!
-			sonar_pong = -1;
-		}
-		overflows = 0;
-		sonar_state = SONAR_READY;
+	if (sonar_state == SONAR_PING) {
+		// we are still waiting for a reply? Impossible!
+		sonar_pong = -1;
 	}
+	sonar_state = SONAR_READY;
 	TCCR1B |= (1<<ICES1);
 }
 #endif
