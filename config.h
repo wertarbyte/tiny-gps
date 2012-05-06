@@ -38,3 +38,13 @@
  */
 #define PARSE_GPS_NMEA_GGA 1
 #define PARSE_GPS_NMEA_RMC 1
+
+/* sloppy sonar distance conversion?
+ *
+ * When enabled, the echo time of the sonar pulse will be divided by 64 instead
+ * of 58, reducing the code size, but also introducing a 10% error in absolute
+ * distance measurement (cm). If you are only interested in relative distances
+ * regardless of the unit of measurement and running low on flash memory, you
+ * can safely enable this.
+ */
+#define SLOPPY_SONAR_CONVERSION 0

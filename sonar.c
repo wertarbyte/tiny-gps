@@ -49,7 +49,11 @@ void sonar_ping(void) {
 }
 
 uint16_t sonar_last_pong(void) {
+#if SLOPPY_SONAR_CONVERSION
+	return sonar_pong>>6;
+#else
 	return sonar_pong/58;
+#endif
 }
 
 ISR(TIMER1_CAPT_vect) {
