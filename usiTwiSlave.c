@@ -255,6 +255,7 @@ static volatile void    *tx_window_end;
 static volatile void    *tx_window_cur;
 static volatile size_t  tx_window_offset;
 
+static void (*window_trap)(void) = NULL;
 
 /********************************************************************************
 
@@ -287,6 +288,14 @@ flushTwiBuffers(
 ********************************************************************************/
 
 
+// set trap function
+void
+usiTwiSlaveSetTrap(
+  void (*trap)(void)
+)
+{
+  window_trap = trap;
+}
 
 // initialise USI for TWI slave mode
 
@@ -486,6 +495,7 @@ ISR( USI_OVERFLOW_VECTOR )
       {
         USIDR = *(uint8_t*)(tx_window_cur);
 	tx_window_cur++;
+	if (tx_window_cur == tx_window_end && window_trap) window_trap();
       }
       else
       {

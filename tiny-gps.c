@@ -23,6 +23,16 @@ static volatile uint8_t rx_buf_w;
 
 struct nav_data_t nav_data = {0};
 
+#if USE_OPTICAL
+static void window_trap(void) {
+	/* did we read the last byte of the data? then reset the counters! */
+	memset(&nav_data.optical, 0, sizeof(&nav_data.optical));
+}
+#define TRAP_ADDR &window_trap
+#else
+#define TRAP_ADDR NULL
+#endif
+
 int main(void) {
 #if USE_GPS
 	UCSRB = (1<<RXEN);
@@ -42,6 +52,9 @@ int main(void) {
 
 	usiTwiSlaveInit(TWIADDRESS);
 	usiTwiSetTransmitWindow( &nav_data, sizeof(nav_data) );
+#if USE_OPTICAL
+	usiTwiSlaveSetTrap(TRAP_ADDR);
+#endif
 
 	rx_buf_r = 0;
 	rx_buf_w = 0;
