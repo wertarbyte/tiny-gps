@@ -6,6 +6,7 @@
 
 #include "nmea.h"
 #include "sonar.h"
+#include "optical.h"
 #include "nav_structs.h"
 #include "usiTwiSlave.h"
 
@@ -75,8 +76,11 @@ int main(void) {
 		if (sonar_ready()) {
 			sonar_ping();
 		}
-	}
 #endif
+#if USE_OPTICAL
+		optical_query(&nav_data.optical);
+#endif
+	}
 }
 
 #if USE_GPS

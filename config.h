@@ -10,6 +10,12 @@
  * The sonar trigger must be connected to PD5, the echo wire to the ICP pin.
  */
 #define USE_SONAR 1
+/* query optical flow sensor?
+ *
+ * The optical flow sensor (A5050) must be connected to PA0 (SCK) and PA1
+ * (SDIO) pins.
+ */
+#define USE_OPTICAL 1
 
 /* extract date/time information from the GPS signal?
  *
