@@ -46,7 +46,7 @@ static enum {
 	CS_INVALID, /* the transmitted checksum did not match the calculated one */
 } checksum_state = CS_UNKNOWN;
 
-uint8_t checksum = 0;
+static uint8_t checksum = 0;
 
 static uint8_t token_nr = 0;
 
