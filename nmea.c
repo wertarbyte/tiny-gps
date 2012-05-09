@@ -43,7 +43,7 @@ uint8_t checksum = 0;
 
 static uint8_t token_nr = 0;
 
-#define TOKEN_BUFFER_SIZE 16
+#define TOKEN_BUFFER_SIZE 11
 
 static char token_buffer[TOKEN_BUFFER_SIZE] = "";
 
