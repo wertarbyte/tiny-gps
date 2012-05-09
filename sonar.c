@@ -12,6 +12,13 @@
 #define SONAR_TRIGGER_DDR DDRD
 #define SONAR_TRIGGER_BIT PD2
 
+#if __AVR__
+#include <util/atomic.h>
+#define ATOMIC(t) ATOMIC_BLOCK(t)
+#else
+#define ATOMIC(t)
+#endif
+
 static volatile int16_t sonar_pong = 0;
 
 static volatile enum {
@@ -39,11 +46,11 @@ uint8_t sonar_ready(void) {
 }
 
 void sonar_ping(void) {
-	cli();
-	sonar_state = SONAR_PING;
-	SONAR_TRIGGER_PORT |= 1<<SONAR_TRIGGER_BIT;
-	TCNT1 = 0;
-	sei();
+	ATOMIC(ATOMIC_FORCEON) {
+		sonar_state = SONAR_PING;
+		SONAR_TRIGGER_PORT |= 1<<SONAR_TRIGGER_BIT;
+		TCNT1 = 0;
+	}
 	_delay_us(10);
 	SONAR_TRIGGER_PORT &= ~(1<<SONAR_TRIGGER_BIT);
 }

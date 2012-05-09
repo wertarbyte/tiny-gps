@@ -483,7 +483,7 @@ void nmea_process_character(char c) {
 			break;
 		case '\n':
 			token_finished();
-			ATOMIC(ATOMIC_RESTORESTATE) {
+			ATOMIC(ATOMIC_FORCEON) {
 				sentence_finished();
 			}
 			checksum_state = CS_UNKNOWN;
