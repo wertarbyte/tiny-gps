@@ -151,7 +151,7 @@ static void process_gprmc_token(void) {
 			 * A OK
 			 * V Warning
 			 */
-			if (strcmp(token_buffer, "A") == 0) {
+			if (token_buffer[0] == 'A') {
 				nmea_wip.rmc.flags |= (1<<NMEA_RMC_FLAGS_STATUS_OK);
 			} else {
 				nmea_wip.rmc.flags &= ~(1<<NMEA_RMC_FLAGS_STATUS_OK);
@@ -168,7 +168,7 @@ static void process_gprmc_token(void) {
 			 * N north
 			 * S south
 			 */
-			if (strcmp(token_buffer, "N") == 0) {
+			if (token_buffer[0] == 'N') {
 				nmea_wip.rmc.flags |= (1<<NMEA_RMC_FLAGS_LAT_NORTH);
 			} else {
 				nmea_wip.rmc.flags &= ~(1<<NMEA_RMC_FLAGS_LAT_NORTH);
@@ -185,7 +185,7 @@ static void process_gprmc_token(void) {
 			 * E east
 			 * W west
 			 */
-			if (strcmp(token_buffer, "E") == 0) {
+			if (token_buffer[0] == 'E') {
 				nmea_wip.rmc.flags |= (1<<NMEA_RMC_FLAGS_LON_EAST);
 			} else {
 				nmea_wip.rmc.flags &= ~(1<<NMEA_RMC_FLAGS_LON_EAST);
@@ -258,7 +258,7 @@ static void process_gpgga_token(void) {
 			 * N north
 			 * S south
 			 */
-			if (strcmp(token_buffer, "N") == 0) {
+			if (token_buffer[0] == 'N') {
 				nmea_wip.gga.flags |= (1<<NMEA_RMC_FLAGS_LAT_NORTH);
 			} else {
 				nmea_wip.gga.flags &= ~(1<<NMEA_RMC_FLAGS_LAT_NORTH);
@@ -275,7 +275,7 @@ static void process_gpgga_token(void) {
 			 * E east
 			 * W west
 			 */
-			if (strcmp(token_buffer, "E") == 0) {
+			if (token_buffer[0] == 'E') {
 				nmea_wip.gga.flags |= (1<<NMEA_RMC_FLAGS_LON_EAST);
 			} else {
 				nmea_wip.gga.flags &= ~(1<<NMEA_RMC_FLAGS_LON_EAST);
