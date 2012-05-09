@@ -250,11 +250,6 @@ typedef enum
 static uint8_t                  slaveAddress;
 static volatile overflowState_t overflowState;
 
-
-static uint8_t          rxBuf[ TWI_RX_BUFFER_SIZE ];
-static volatile uint8_t rxHead;
-static volatile uint8_t rxTail;
-
 static volatile void    *tx_window_start;
 static volatile void    *tx_window_end;
 static volatile void    *tx_window_cur;
@@ -277,8 +272,6 @@ flushTwiBuffers(
   void
 )
 {
-  rxTail = 0;
-  rxHead = 0;
   tx_window_start = 0;
   tx_window_end = 0;
   tx_window_cur = 0;
@@ -353,43 +346,6 @@ void usiTwiSetTransmitWindow(
   tx_window_end = start+size;
   tx_window_cur = tx_window_start;
 }
-
-
-// return a byte from the receive buffer, wait if buffer is empty
-
-uint8_t
-usiTwiReceiveByte(
-  void
-)
-{
-
-  // wait for Rx data
-  while ( rxHead == rxTail );
-
-  // calculate buffer index
-  rxTail = ( rxTail + 1 ) & TWI_RX_BUFFER_MASK;
-
-  // return data from the buffer.
-  return rxBuf[ rxTail ];
-
-} // end usiTwiReceiveByte
-
-
-
-// check if there is data in the receive buffer
-
-bool
-usiTwiDataInReceiveBuffer(
-  void
-)
-{
-
-  // return 0 (false) if the receive buffer is empty
-  return rxHead != rxTail;
-
-} // end usiTwiDataInReceiveBuffer
-
-
 
 /********************************************************************************
 
@@ -558,16 +514,8 @@ ISR( USI_OVERFLOW_VECTOR )
     // copy data from USIDR and send ACK
     // next USI_SLAVE_REQUEST_DATA
     case USI_SLAVE_GET_DATA_AND_SEND_ACK:
-#if 0
-      // put data into buffer
-      // Not necessary, but prevents warnings
-      rxHead = ( rxHead + 1 ) & TWI_RX_BUFFER_MASK;
-      rxBuf[ rxHead ] = USIDR;
-      // next USI_SLAVE_REQUEST_DATA
-#else
       /* we assume that the data is an address offset */
       tx_window_offset = USIDR;
-#endif
       overflowState = USI_SLAVE_REQUEST_DATA;
       SET_USI_TO_SEND_ACK( );
       break;
