@@ -18,8 +18,8 @@
 #if USE_GPS
 #define RX_BUF_SIZE 4
 static volatile char rx_buf[RX_BUF_SIZE];
-static volatile uint8_t rx_buf_r;
-static volatile uint8_t rx_buf_w;
+static volatile uint8_t rx_buf_r = 0;
+static volatile uint8_t rx_buf_w = 0;
 #endif
 
 struct nav_data_t nav_data = {{0}};
@@ -56,9 +56,6 @@ int main(void) {
 #if USE_OPTICAL
 	usiTwiSlaveSetTrap(TRAP_ADDR);
 #endif
-
-	rx_buf_r = 0;
-	rx_buf_w = 0;
 
 #if LED_FIX_INDICATOR
 	DDRD = (1<<PD5);
