@@ -13,10 +13,12 @@
 
 #include <util/setbaud.h>
 
+#if USE_GPS
 #define RX_BUF_SIZE 4
 static volatile char rx_buf[RX_BUF_SIZE];
 static volatile uint8_t rx_buf_r;
 static volatile uint8_t rx_buf_w;
+#endif
 
 struct nav_data_t nav_data = {0};
 
@@ -32,7 +34,10 @@ int main(void) {
 
 	nmea_init(&nav_data.gps);
 #endif
+
+#if USE_SONAR
 	sonar_init();
+#endif
 
 	usiTwiSlaveInit(TWIADDRESS);
 	usiTwiSetTransmitWindow( &nav_data, sizeof(nav_data) );
@@ -65,13 +70,16 @@ int main(void) {
 			PORTD &= ~(1<<PD5);
 		}
 #endif
+#if USE_SONAR
 		nav_data.sonar.distance = sonar_last_pong();
 		if (sonar_ready()) {
 			sonar_ping();
 		}
 	}
+#endif
 }
 
+#if USE_GPS
 ISR(USART_RX_vect) {
 	rx_buf[rx_buf_w] = UDR;
 	rx_buf_w++;
@@ -79,3 +87,4 @@ ISR(USART_RX_vect) {
 		rx_buf_w = 0;
 	}
 }
+#endif

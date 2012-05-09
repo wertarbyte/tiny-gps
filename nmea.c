@@ -1,10 +1,11 @@
+#include "config.h"
+#if USE_GPS
 /* NMEA parser */
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 
 #include "nmea.h"
-#include "config.h"
 
 #if __AVR__
 #include <util/atomic.h>
@@ -414,3 +415,4 @@ void nmea_process_character(char c) {
 		add_to_checksum(c);
 	}
 }
+#endif

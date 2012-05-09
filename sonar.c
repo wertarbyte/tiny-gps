@@ -1,3 +1,5 @@
+#include "config.h"
+#if USE_SONAR
 /* sonar handler */
 #include <stdlib.h>
 #include <stdint.h>
@@ -76,3 +78,4 @@ ISR(TIMER1_OVF_vect) {
 	}
 	TCCR1B |= (1<<ICES1);
 }
+#endif
