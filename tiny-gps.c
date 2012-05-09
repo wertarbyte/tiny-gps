@@ -3,6 +3,7 @@
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
+#include <string.h>
 
 #include "nmea.h"
 #include "sonar.h"
@@ -21,7 +22,7 @@ static volatile uint8_t rx_buf_r;
 static volatile uint8_t rx_buf_w;
 #endif
 
-struct nav_data_t nav_data = {0};
+struct nav_data_t nav_data = {{0}};
 
 #if USE_OPTICAL
 static void window_trap(void) {
