@@ -137,6 +137,7 @@ static void parse_date(struct date_t *d) {
 #if PARSE_GPS_NMEA_RMC
 static void process_gprmc_token(void) {
 	switch (token_nr) {
+#if !PARSE_GPS_NMEA_GGA /* avoid duplicate parsing code */
 #if PARSE_GPS_TIME
 		case 1:
 			/* time
@@ -191,6 +192,7 @@ static void process_gprmc_token(void) {
 			}
 
 			break;
+#endif
 		case 7:
 			/* speed
 			 * GG.G
@@ -330,9 +332,11 @@ static void sentence_finished(void) {
 			memcpy(&nmea_data->date, &nmea_wip.rmc.date, sizeof(nmea_wip.rmc.date));
 			memcpy(&nmea_data->clock, &nmea_wip.rmc.clock, sizeof(nmea_wip.rmc.clock));
 #endif
+#if !PARSE_GPS_NMEA_GGA /* avoid duplicate parsing code */
 			nmea_data->flags = nmea_wip.rmc.flags;
 			memcpy(&nmea_data->lon, &nmea_wip.rmc.lon, sizeof(nmea_wip.rmc.lon));
 			memcpy(&nmea_data->lat, &nmea_wip.rmc.lat, sizeof(nmea_wip.rmc.lat));
+#endif
 			break;
 #endif
 #if PARSE_GPS_NMEA_GGA
