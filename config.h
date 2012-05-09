@@ -1,2 +1,2 @@
-#define BAUD 9600
+#define BAUD 38400
 #define TWIADDRESS 0x11
