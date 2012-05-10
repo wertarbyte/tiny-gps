@@ -27,7 +27,7 @@ struct nav_data_t nav_data = {{0}};
 #if USE_OPTICAL
 static void window_trap(void) {
 	/* did we read the last byte of the data? then reset the counters! */
-	memset(&nav_data.optical, 0, sizeof(&nav_data.optical));
+	memset(&nav_data.optical, 0, sizeof(nav_data.optical));
 }
 #define TRAP_ADDR &window_trap
 #else
@@ -49,6 +49,9 @@ int main(void) {
 
 #if USE_SONAR
 	sonar_init();
+#endif
+#if USE_OPTICAL
+	optical_init();
 #endif
 
 	usiTwiSlaveInit(TWIADDRESS);

@@ -1,4 +1,4 @@
 struct optical_data_t {
-	int16_t dx;
-	int16_t dy;
+	int8_t dx;
+	int8_t dy;
 };

@@ -12,8 +12,8 @@
 #define USE_SONAR 1
 /* query optical flow sensor?
  *
- * The optical flow sensor (A5050) must be connected to PA0 (SCK) and PA1
- * (SDIO) pins.
+ * The optical flow sensor (A5050) must be connected to PA0 (SCK), PA1 (SDIO)
+ * and PB6 (CSEL/NCS) pins.
  */
 #define USE_OPTICAL 1
 
