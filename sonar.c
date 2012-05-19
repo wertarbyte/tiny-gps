@@ -55,7 +55,8 @@ void sonar_ping(void) {
 	SONAR_TRIGGER_PORT &= ~(1<<SONAR_TRIGGER_BIT);
 }
 
-uint16_t sonar_last_pong(void) {
+int16_t sonar_last_pong(void) {
+	if (sonar_pong < 0) return -1;
 #if SLOPPY_SONAR_CONVERSION
 	return sonar_pong>>6;
 #else
