@@ -35,14 +35,14 @@ static void window_trap(void) {
 
 #if USE_GPS
 static void init_gps_unit(void) {
+	/* enable RX pin and interrupt */
+	UCSRB = ( 1<<RXEN | 1<<RXCIE
 #ifdef GPS_INIT_STRING
 	/* also enable the TX pin */
-	UCSRB = (1<<RXEN | 1<<TXEN);
-#else
-	UCSRB = (1<<RXEN);
+	| 1<<TXEN
 #endif
+	);
 
-	UCSRB = (1<<RXEN | 1<<RXCIE);
 	UCSRC = (0<<USBS)|(3<<UCSZ0);
 
 #ifdef GPS_INIT_BAUD
