@@ -55,6 +55,9 @@ static void init_gps_unit(void) {
 #endif
 
 #ifdef GPS_INIT_STRING
+#ifdef GPS_INIT_DELAY
+	_delay_ms(GPS_INIT_DELAY);
+#endif
 	/* transmit configuration commands */
 	PGM_P init = PSTR(GPS_INIT_STRING);
 	const char *p = init;

@@ -14,6 +14,9 @@
  */
 //#define GPS_INIT_STRING "$PMTK300,200,0,0,0,0*2F\r\n$PMTK251,115200*1F\r\n"
 
+/* wait a few moments (in ms) before sending the init string? */
+//#define GPS_INIT_DELAY 250
+
 /* use a different baud rate for sending the init string? */
 //#define GPS_INIT_BAUD 9600
 
