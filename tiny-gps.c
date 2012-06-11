@@ -13,7 +13,6 @@
 
 #include "config.h"
 
-#include <util/setbaud.h>
 
 #if USE_GPS
 #define RX_BUF_SIZE 4
@@ -34,16 +33,50 @@ static void window_trap(void) {
 #define TRAP_ADDR NULL
 #endif
 
-int main(void) {
 #if USE_GPS
+static void init_gps_unit(void) {
+#ifdef GPS_INIT_STRING
+	/* also enable the TX pin */
+	UCSRB = (1<<RXEN | 1<<TXEN);
+#else
 	UCSRB = (1<<RXEN);
+#endif
 
 	UCSRB = (1<<RXEN | 1<<RXCIE);
 	UCSRC = (0<<USBS)|(3<<UCSZ0);
 
+#ifdef GPS_INIT_BAUD
+	/* set initial baud rate for initialization */
+	#define BAUD GPS_INIT_BAUD
+	#include <util/setbaud.h>
 	UCSRA = (USE_2X<<U2X);
 	UBRRL = UBRRL_VALUE;
+	#undef BAUD
+#endif
 
+#ifdef GPS_INIT_STRING
+	/* transmit configuration commands */
+	PGM_P init = PSTR(GPS_INIT_STRING);
+	const char *p = init;
+	char c;
+	while ((c = pgm_read_byte(p++)) != '\0') {
+		UDR = c;
+		/* wait for transmission to complete */
+		while(!(UCSRA & (1<<UDRE)));
+	}
+#endif
+
+	/* now set final baud rate */
+	#define BAUD GPS_BAUD
+	#include <util/setbaud.h>
+	UCSRA = (USE_2X<<U2X);
+	UBRRL = UBRRL_VALUE;
+}
+#endif
+
+int main(void) {
+#if USE_GPS
+	init_gps_unit();
 	nmea_init(&nav_data.gps);
 #endif
 

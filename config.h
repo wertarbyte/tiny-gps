@@ -1,10 +1,22 @@
-/* baud rate of the serial GPS receiver */
-#define BAUD 38400
 /* 7 bit address on the TWI/I²C bus */
 #define TWIADDRESS 0x11
 
 /* query a serial GPS? */
 #define USE_GPS 1
+
+/* baud rate of the serial GPS receiver */
+#define GPS_BAUD 38400
+
+/* send configuration string to the GPS unit to change baud and/or update rate?
+ *
+ * Please note that not all baud rates are possible depending on your
+ * clock frequency; pay attention to compiler warnings!
+ */
+//#define GPS_INIT_STRING "$PMTK300,200,0,0,0,0*2F\r\n$PMTK251,115200*1F\r\n"
+
+/* use a different baud rate for sending the init string? */
+//#define GPS_INIT_BAUD 9600
+
 /* query additional sonar device?
  *
  * The sonar trigger must be connected to PD5, the echo wire to the ICP pin.
