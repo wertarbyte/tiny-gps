@@ -17,6 +17,9 @@
 /* wait a few moments (in ms) before sending the init string? */
 //#define GPS_INIT_DELAY 250
 
+/* wait a few moments after sending a linefeed (\n)? */
+//#define GPS_INIT_LINEFEED_DELAY 100
+
 /* use a different baud rate for sending the init string? */
 //#define GPS_INIT_BAUD 9600
 

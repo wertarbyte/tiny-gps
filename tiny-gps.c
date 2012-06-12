@@ -66,6 +66,11 @@ static void init_gps_unit(void) {
 		UDR = c;
 		/* wait for transmission to complete */
 		while(!(UCSRA & (1<<UDRE)));
+#ifdef GPS_INIT_LINEFEED_DELAY
+		if (c == '\n') {
+			_delay_ms(GPS_INIT_LINEFEED_DELAY);
+		}
+#endif
 	}
 #endif
 
