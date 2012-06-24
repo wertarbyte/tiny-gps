@@ -73,3 +73,10 @@
  * can safely enable this.
  */
 #define SLOPPY_SONAR_CONVERSION 0
+
+/* calculate average over sonar results?
+ *
+ * Averaging multiple measurements of the sonar can reduce the effects of false echoes.
+ * Changing this value to 1 disables the sliding window and reduces the memory footprint.
+ */
+#define SONAR_AVG_WINDOW_SIZE 5
