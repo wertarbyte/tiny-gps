@@ -63,16 +63,15 @@ flash/SRAM constraints of the 2313) is _highly_ recommended.
 
 Wiring:
 
-                 .--v--.
-                -|     |- VCC
-          GPS <--|  T  |--> I²C SCL
-                -|  i  |--> Optical CSEL
-  Optical DIO <--|  n  |--> I²C SDA
-  Optical CLK <--|  y  |-
-Sonar Trigger <--|  4  |-
-                -|  3  |-
-                -|  1  |-
-                -|  3  |-
-            GND -|     |--> Sonar Echo
-                 `-----´
-
+                    .--v--.
+                   -|     |-VCC
+Read from GPS <-PD0-|  T  |-PB7-> I²C SCL
+ Write to GPS <-PD1-|  i  |-PB6-> Optical CSEL
+  Optical DIO <-PA1-|  n  |-PB5-> I²C SDA
+  Optical CLK <-PA0-|  y  |-
+Sonar Trigger <-PD2-|  4  |-
+                   -|  3  |-
+                   -|  1  |-
+  GPS-Fix LED <-PD5-|  3  |-
+                GND-|     |-PD6-> Sonar Echo
+                    `-----´
