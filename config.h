@@ -25,7 +25,7 @@
 
 /* query additional sonar device?
  *
- * The sonar trigger must be connected to PD5, the echo wire to the ICP pin.
+ * The sonar trigger must be connected to PD2, the echo wire to the ICP pin.
  */
 #define USE_SONAR 1
 
